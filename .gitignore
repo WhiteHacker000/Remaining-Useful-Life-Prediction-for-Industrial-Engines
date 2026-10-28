@@ -1,0 +1,26 @@
+# Raw data is downloaded automatically by src/data.py
+data/raw/*
+!data/raw/.gitkeep
+
+# Python / Jupyter
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.pytest_cache/
+.venv/
+venv/
+
+# LaTeX build files
+report/*.aux
+report/*.log
+report/*.out
+report/*.bbl
+report/*.blg
+report/*.synctex.gz
+report/*.fdb_latexmk
+report/*.fls
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
