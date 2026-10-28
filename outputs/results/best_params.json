@@ -1,0 +1,21 @@
+{
+  "elastic_net": {
+    "alpha": 0.59874749104614,
+    "l1_ratio": 0.09412789208399784
+  },
+  "random_forest": {
+    "max_depth": 16,
+    "max_features": 0.45919509051822194,
+    "min_samples_leaf": 7,
+    "n_estimators": 250
+  },
+  "xgboost": {
+    "colsample_bytree": 0.8054140702235684,
+    "learning_rate": 0.09047700675693512,
+    "max_depth": 3,
+    "min_child_weight": 10,
+    "n_estimators": 760,
+    "reg_lambda": 0.33566066887760654,
+    "subsample": 0.6699819708383744
+  }
+}
