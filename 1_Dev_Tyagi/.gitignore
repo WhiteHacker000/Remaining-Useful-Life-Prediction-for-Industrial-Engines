@@ -1,0 +1,29 @@
+# Raw data: only the subsets used in the notebooks are committed (FD001, FD002).
+# The other subsets can be downloaded with scripts/download_data.py.
+data/raw/*
+!data/raw/.gitkeep
+!data/raw/*_FD001.txt
+!data/raw/*_FD002.txt
+
+# Python / Jupyter
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.pytest_cache/
+.venv/
+venv/
+
+# LaTeX build files
+report/*.aux
+report/*.log
+report/*.out
+report/*.bbl
+report/*.blg
+report/*.synctex.gz
+report/*.fdb_latexmk
+report/*.fls
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
