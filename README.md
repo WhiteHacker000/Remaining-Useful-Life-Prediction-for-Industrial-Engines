@@ -9,6 +9,8 @@
 
 We predict how many operating cycles a turbofan engine has left before it fails, using the multivariate sensor histories of NASA's C-MAPSS run-to-failure simulation (subset **FD001**). **Phase 1** (this release) builds a leakage-free degradation-feature pipeline and compares Elastic Net, Random Forest and XGBoost. **Phase 2** will compare it with sequence models (LSTM / temporal CNN) that learn directly from raw sensor windows.
 
+**Phase 1 report (IEEE format): [RUL_Prediction_Phase1_Report.pdf](report/RUL_Prediction_Phase1_Report.pdf)**
+
 ---
 
 ## Results at a glance
@@ -104,7 +106,7 @@ On Colab, the first cell clones this repository automatically, so the notebooks 
 ├── outputs/
 │   ├── figures/              all figures used in the notebooks and report
 │   └── results/              CV and test result tables (csv / json)
-├── report/                   IEEE-format LaTeX report (Overleaf-ready)
+├── report/                   IEEE-format report: PDF + LaTeX source (Overleaf-ready)
 ├── scripts/download_data.py  manual download of all four C-MAPSS subsets
 └── requirements.txt
 ```
