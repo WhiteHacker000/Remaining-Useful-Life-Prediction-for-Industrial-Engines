@@ -130,10 +130,17 @@ def train_lstm(
     model_config=None,
     config=None,
 ):
-    """Train with engine-disjoint validation and restore the best checkpoint."""
+    """Train and restore the best checkpoint.
+
+    With validation data, early stopping and checkpoint selection use only those
+    engine-disjoint windows. Without validation data, train for exactly ``epochs``;
+    this supports final refitting after selecting the epoch count on validation.
+    """
     config = TrainingConfig() if config is None else config
     model_config = {"input_size": train_batch.x.shape[2]} if model_config is None else dict(model_config)
-    if set(train_batch.unit).intersection(validation_batch.unit):
+    if validation_batch is not None and set(train_batch.unit).intersection(
+        validation_batch.unit
+    ):
         raise ValueError("training and validation batches must use disjoint engines")
     if train_batch.x.shape[2] != model_config.get("input_size"):
         raise ValueError("model input_size must match the sequence feature count")
@@ -143,8 +150,10 @@ def train_lstm(
     device = _resolve_device(config.device)
     model = LSTMRegressor(**model_config).to(device)
     train_loader = _make_loader(train_batch, config.batch_size, True, config.seed)
-    validation_loader = _make_loader(
-        validation_batch, config.batch_size, False, config.seed
+    validation_loader = (
+        None
+        if validation_batch is None
+        else _make_loader(validation_batch, config.batch_size, False, config.seed)
     )
 
     criterion = nn.SmoothL1Loss() if config.loss == "huber" else nn.MSELoss()
@@ -175,10 +184,13 @@ def train_lstm(
         train_loss = _run_epoch(
             model, train_loader, criterion, device, optimizer, config.max_grad_norm
         )
-        validation_loss = _run_epoch(
-            model, validation_loader, criterion, device
+        validation_loss = (
+            None
+            if validation_loader is None
+            else _run_epoch(model, validation_loader, criterion, device)
         )
-        scheduler.step(validation_loss)
+        if validation_loss is not None:
+            scheduler.step(validation_loss)
         learning_rate = optimizer.param_groups[0]["lr"]
         history.append(
             {
@@ -189,7 +201,7 @@ def train_lstm(
             }
         )
 
-        if validation_loss < best_loss - config.min_delta:
+        if validation_loss is None or validation_loss < best_loss - config.min_delta:
             best_loss = validation_loss
             best_epoch = epoch
             stale_epochs = 0

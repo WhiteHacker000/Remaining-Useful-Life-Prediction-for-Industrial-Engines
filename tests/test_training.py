@@ -62,6 +62,20 @@ def test_training_rejects_engine_overlap(tmp_path):
     assert not (tmp_path / "should-not-exist.pt").exists()
 
 
+def test_final_fit_uses_all_training_engines_without_validation(tmp_path):
+    training = make_batch([1, 2, 3])
+    result = train_lstm(
+        training,
+        None,
+        tmp_path / "final.pt",
+        model_config={"input_size": 2, "hidden_size": 4, "num_layers": 1},
+        config=TrainingConfig(epochs=2, batch_size=4, device="cpu"),
+    )
+    assert result.best_epoch == 2
+    assert result.best_validation_loss is None
+    assert all(epoch["validation_loss"] is None for epoch in result.history)
+
+
 def test_training_configuration_rejects_invalid_values():
     with pytest.raises(ValueError, match="positive"):
         TrainingConfig(epochs=0)
