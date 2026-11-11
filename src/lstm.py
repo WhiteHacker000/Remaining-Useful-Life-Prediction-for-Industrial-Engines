@@ -37,7 +37,6 @@ class LSTMRegressor(nn.Module):
             dropout=dropout if num_layers > 1 else 0.0,
         )
         self.regression_head = nn.Sequential(
-            nn.LayerNorm(hidden_size),
             nn.Dropout(dropout),
             nn.Linear(hidden_size, max(hidden_size // 2, 1)),
             nn.ReLU(),
