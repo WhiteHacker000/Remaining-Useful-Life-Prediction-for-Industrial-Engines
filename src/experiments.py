@@ -168,8 +168,8 @@ def run_phase2_validation(
             "validation_mae_true_RUL": mae(y_validation, prediction),
             "best_epoch": result.best_epoch,
             "best_validation_huber_loss": result.best_validation_loss,
-            "checkpoint": str(result.checkpoint_path),
-            "history": str(result.history_path),
+            "checkpoint": str(result.checkpoint_path.relative_to(output_dir)),
+            "history": str(result.history_path.relative_to(output_dir)),
             "model_config": model_config,
             "training_config": asdict(training_config),
         }
