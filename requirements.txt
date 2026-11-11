@@ -5,6 +5,7 @@ scikit-learn>=1.4
 xgboost>=2.0
 shap>=0.44
 matplotlib>=3.8
+torch>=2.2,<3.0
 jupyter
 certifi
 pytest
