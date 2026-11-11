@@ -1,0 +1,85 @@
+{
+  "dataset": "NASA C-MAPSS FD001",
+  "test_engines": 100,
+  "evaluation": "One prediction at each official test engine's last observed cycle.",
+  "selection_protocol": "Configuration selected only on a seeded 20-engine validation holdout; no test metric influenced selection.",
+  "selected_experiment": {
+    "name": "window_50_base",
+    "window_size": 50,
+    "model_config": {
+      "input_size": 14,
+      "hidden_size": 32,
+      "num_layers": 1,
+      "dropout": 0.2
+    },
+    "training_config": {
+      "epochs": 40,
+      "batch_size": 256,
+      "learning_rate": 0.001,
+      "weight_decay": 0.0001,
+      "patience": 12,
+      "min_delta": 0.0001,
+      "optimizer": "adamw",
+      "loss": "huber",
+      "scheduler_patience": 4,
+      "scheduler_factor": 0.5,
+      "max_grad_norm": 1.0,
+      "seed": 42,
+      "device": "cpu",
+      "num_threads": 1
+    },
+    "best_epoch": 32,
+    "validation_rmse_capped": 8.359394073486328,
+    "validation_mae_capped": 6.520773887634277
+  },
+  "final_fit_epochs": 32,
+  "seed": 42,
+  "window_size": 50,
+  "input_sensors": [
+    "s_2",
+    "s_3",
+    "s_4",
+    "s_7",
+    "s_8",
+    "s_9",
+    "s_11",
+    "s_12",
+    "s_13",
+    "s_14",
+    "s_15",
+    "s_17",
+    "s_20",
+    "s_21"
+  ],
+  "target_cap_for_training": 125,
+  "metrics_true_RUL": {
+    "RMSE": 14.856635877574595,
+    "MAE": 10.558857040405274,
+    "NASA_score": 309.9645056668541,
+    "RMSE_95_CI": [
+      12.35311653697506,
+      17.390996186367698
+    ]
+  },
+  "metrics_capped_RUL": {
+    "RMSE": 13.411645324375547,
+    "MAE": 9.488857040405273,
+    "NASA_score": 263.1050370357697
+  },
+  "phase1_xgboost_same_test_population": {
+    "RMSE": 10.754107454734381,
+    "MAE": 8.085268701,
+    "NASA_score": 161.10894346609737
+  },
+  "environment": {
+    "python": "3.12.5",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "torch": "2.15.0"
+  },
+  "artifacts": {
+    "checkpoint": "models/phase2/lstm_fd001.pt",
+    "history": "models/phase2/lstm_fd001.history.json",
+    "preprocessing": "models/phase2/lstm_fd001_preprocessing.json"
+  }
+}
