@@ -46,15 +46,23 @@ def load_cmapss(subset="FD001", data_dir=DATA_RAW):
     if not (data_dir / f"train_{subset}.txt").exists():
         download_cmapss(data_dir)
 
-    def read(name):
-        return pd.read_csv(data_dir / name, sep=r"\s+", header=None, names=RAW_COLS)
-
-    train = read(f"train_{subset}.txt")
-    test = read(f"test_{subset}.txt")
+    train = load_train_cmapss(subset, data_dir)
+    test = pd.read_csv(
+        data_dir / f"test_{subset}.txt", sep=r"\s+", header=None, names=RAW_COLS
+    )
     rul = pd.read_csv(data_dir / f"RUL_{subset}.txt", header=None).iloc[:, 0]
     rul.index = pd.RangeIndex(1, len(rul) + 1, name="unit")
     rul.name = "RUL"
     return train, test, rul
+
+
+def load_train_cmapss(subset="FD001", data_dir=DATA_RAW):
+    """Load only run-to-failure training rows, without reading official test files."""
+    if not (data_dir / f"train_{subset}.txt").exists():
+        download_cmapss(data_dir)
+    return pd.read_csv(
+        data_dir / f"train_{subset}.txt", sep=r"\s+", header=None, names=RAW_COLS
+    )
 
 
 def add_train_rul(train):

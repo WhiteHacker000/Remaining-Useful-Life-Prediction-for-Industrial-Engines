@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 from src.config import RAW_COLS, SENSOR_COLS, SETTING_COLS, USEFUL_SENSORS
-from src.data import load_cmapss
+from src.data import load_cmapss, load_train_cmapss
 
 EXPECTED = {
     # subset: (train rows, test rows, train engines, test engines)
@@ -30,6 +30,22 @@ def test_shapes_and_engine_counts(subset):
     assert train["unit"].nunique() == e_train
     assert test["unit"].nunique() == e_test
     assert len(rul) == e_test
+
+
+def test_training_only_loader_does_not_read_official_test_files(monkeypatch):
+    import src.data as data_module
+
+    read_csv = data_module.pd.read_csv
+    filenames = []
+
+    def recording_read_csv(path, *args, **kwargs):
+        filenames.append(path.name)
+        return read_csv(path, *args, **kwargs)
+
+    monkeypatch.setattr(data_module.pd, "read_csv", recording_read_csv)
+    train = load_train_cmapss("FD001")
+    assert train["unit"].nunique() == 100
+    assert filenames == ["train_FD001.txt"]
 
 
 def test_no_missing_or_infinite_values(subset):
