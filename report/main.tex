@@ -9,14 +9,14 @@
 \usepackage{xcolor}
 \usepackage{url}
 \usepackage[hidelinks]{hyperref}
-\graphicspath{{figures/}}
+\graphicspath{{figures/}{../outputs/figures/phase2/}}
 
 \newcommand{\sensor}[1]{\texttt{s\_#1}}
 
 \begin{document}
 
 \title{Remaining Useful Life Prediction for Turbofan Engines:\\
-Degradation Feature Engineering with Classical Machine Learning}
+Engineered Features and Sequence Learning on C-MAPSS FD001}
 
 \author{
 \IEEEauthorblockN{Kushal Tyagi}
@@ -35,17 +35,17 @@ Degradation Feature Engineering with Classical Machine Learning}
 \IEEEauthorblockA{Enrollment No.\ 2401010493}
 \and
 \IEEEauthorblockA{\textit{Newton School of Technology, Rishihood University}\\
-Advanced Machine Learning · Project 7, Phase 1}
+Advanced Machine Learning · Project 7, Phases 1 and 2}
 }
 
 \maketitle
 
 \begin{abstract}
-Predicting how many operating cycles an engine has left before it fails is the core task of predictive maintenance. We study remaining useful life (RUL) prediction on the FD001 subset of NASA's C-MAPSS turbofan degradation data set and ask how far carefully engineered degradation features can take classical machine learning models. We build a leakage-free pipeline: features are strictly causal, everything learned from data is fitted on training engines only, and all validation is done with five-fold cross-validation grouped by engine. The 88 features include rolling statistics, least-squares trend slopes at two horizons, each engine's deviation from its own early-life baseline, and a principal-component health index, with operating-regime normalisation that we validate on FD002. Controlled experiments show that a piecewise-linear target capped at 125 cycles cuts error by 44\% compared with a linear target, and that the engineered features roughly halve the error of tree ensembles compared with raw sensor readings. On the official test set, a tuned XGBoost model reaches an RMSE of 10.75 cycles (95\% CI 9.1--12.4), compared with 18.2 on raw sensors. Its error in the last 50 cycles before failure is only 5.7 cycles. An error analysis shows the remaining weaknesses: fast-degrading engines, the onset of degradation, and short histories. These depend on the timing of the full trajectory and motivate the sequence models of Phase~2.
+We study remaining useful life (RUL) prediction on NASA C-MAPSS FD001 by comparing a causal degradation-feature pipeline with a sequence-based LSTM. Phase~1 uses 88 engineered features and engine-grouped cross-validation; on the official test set, tuned XGBoost reaches RMSE 10.754, MAE 8.085, and NASA score 161.109. Phase~2 splits training engines before window construction, fits sensor normalization on fit engines only, selects a 50-cycle LSTM using a held-out 20-engine validation set, and refits on all 100 training engines. The validation-selected LSTM obtains RMSE 14.857, MAE 10.559, and NASA score 309.965 on the same 100 official test engines, worse than XGBoost on all three metrics. Its validation RMSE of 8.359 does not generalize to the test population. We report this gap without post-test tuning and retain the engineered-feature XGBoost as the benchmark. The result illustrates that temporal modeling is not inherently superior to a strong, leakage-controlled tabular baseline, especially with a small simulated data set.
 \end{abstract}
 
 \begin{IEEEkeywords}
-predictive maintenance, remaining useful life, C-MAPSS, feature engineering, gradient boosting, random forest, elastic net, SHAP
+predictive maintenance, remaining useful life, C-MAPSS, feature engineering, gradient boosting, LSTM, sequence learning, SHAP
 \end{IEEEkeywords}
 
 %=====================================================================
@@ -55,12 +55,13 @@ Unplanned engine failures are expensive and dangerous, while replacing parts on 
 
 Data-driven prognostics learns RUL directly from sensor histories of past units instead of from a physical degradation model. The NASA C-MAPSS data set~\cite{saxena2008damage,saxena2008dataset} has become the standard benchmark for this task: simulated engines with unknown initial wear degrade until failure while 21 sensors are recorded every cycle.
 
-Project~7 compares two ways of using these sensors: (i) \emph{engineered degradation features} with classical regression models, and (ii) sequence models that learn directly from raw sensor windows. This report covers Phase~1, the classical machine-learning side. Our contributions are:
+Project~7 compares two ways of using these sensors: (i) \emph{engineered degradation features} with classical regression models, and (ii) sequence models that learn directly from raw sensor windows. Our contributions are:
 \begin{itemize}
   \item a leakage-free feature pipeline covering cycle, rolling mean, rolling slope, operating-regime and sensor-health features, with a test that proves the features are causal;
   \item controlled experiments on the target definition, feature groups, models and hyperparameters, all using engine-level cross-validation;
   \item an evaluation on the official test set with bootstrap confidence intervals, an error breakdown by degradation stage, and a SHAP interpretation;
-  \item an analysis of where fixed-window features fail, which sets the baseline and the hypotheses for Phase~2.
+  \item a validation-selected, engine-aware LSTM pipeline with window-length and regularization ablations, evaluated on the same official test engines as Phase~1;
+  \item an honest account of the validation-to-test gap and the resulting failure of this LSTM configuration to improve the Phase~1 benchmark.
 \end{itemize}
 
 %=====================================================================
@@ -152,6 +153,22 @@ All model selection uses five-fold cross-validation over \emph{engine ids} (20 e
   S=\sum_j\begin{cases}e^{-d_j/13}-1, & d_j<0\\ e^{d_j/10}-1, & d_j\ge 0,\end{cases}
 \end{equation}
 which penalises late predictions (over-estimated RUL) more heavily. Errors are further broken down into \emph{early} ($\text{RUL}>125$), \emph{mid} ($50<\text{RUL}\le125$) and \emph{late} ($\text{RUL}\le 50$) degradation stages. Hyperparameters are tuned by random search~\cite{bergstra2012random} on the cross-validation folds.
+
+\subsection{Phase 2 sequence data and model}
+The Phase~2 validation split contains 80 fit and 20 validation engines from the 100 run-to-failure training units, selected by engine id with seed 42. The split is made before any overlapping windows are generated. For validation, one deterministic pre-failure cutoff is chosen per held-out engine (seed 43), with true RUL between 1 and 125 where the history permits; this avoids the uninformative all-zero labels that would result from validating only at failure. The official test engines are not used in model selection.
+
+The 14 retained sensor channels are standardized using a \texttt{StandardScaler} fitted only on rows from the fit engines. Validation data use this unchanged transformation. For engine $i$, window endpoint $t$, and window length $L$, the model input is
+\begin{equation}
+  \mathbf{x}_{i,t}^{(L)}=[\mathbf{z}_{i,t-L+1},\ldots,\mathbf{z}_{i,t}],
+\end{equation}
+where $\mathbf{z}$ is the normalized sensor vector. Windows are ordered by cycle and constructed independently inside each engine. If an engine history has fewer than $L$ observations, its first normalized observation is repeated on the left. The endpoint target is $y_{i,t}=\min(\text{RUL}_{i,t},125)$.
+
+The selected model is a one-layer LSTM with 14 inputs, hidden size 32, and dropout 0.2, followed by a fully connected regression head:
+\begin{equation}
+  \mathbf{h}_{i,t}=\operatorname{LSTM}(\mathbf{z}_{i,t},\mathbf{h}_{i,t-1}),\qquad
+  \hat y_{i,t}=g(\mathbf{h}_{i,t}).
+\end{equation}
+Training uses AdamW, Huber loss, learning rate 0.001, weight decay $10^{-4}$, batch size 256, gradient clipping, and seed 42. Checkpoint and epoch selection use validation engines only. The ablation varies $L\in\{20,30,50\}$, dropout $\{0,0.2,0.4\}$, and weight decay $\{0,10^{-4}\}$. Selection minimizes validation RMSE against capped RUL. The final model is refitted on all 100 training engines for the selected 32 epochs, with the scaler refit on those training engines; test data are transformed without refitting. Final evaluation predicts once at the last observed cycle of each official test engine.
 
 %=====================================================================
 \section{Experiments and Results}
@@ -291,9 +308,106 @@ TreeSHAP~\cite{lundberg2017shap} on the final XGBoost model (Fig.~\ref{fig:shap}
 \end{figure}
 
 %=====================================================================
+\section{Phase 2 Results}
+%=====================================================================
+\subsection{Validation ablations}
+Table~\ref{tab:phase2-validation} reports the validation-only sweep. A 50-cycle window is the lowest-RMSE candidate on the 20-engine holdout. The XGBoost validation result is measured on the same held-out engines and pre-failure cutoff cycles. These results determine the final LSTM configuration and epoch count; the official test set does not.
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\caption{Phase 2 engine-holdout validation results (capped RUL)}
+\label{tab:phase2-validation}
+\resizebox{\columnwidth}{!}{\begin{tabular}{lccccc}
+\toprule
+Candidate & Window & Dropout & Weight decay & RMSE & MAE \\
+\midrule
+XGBoost & -- & -- & -- & 10.794 & 7.521 \\
+LSTM & 20 & 0.2 & $10^{-4}$ & 18.385 & 12.993 \\
+LSTM & 30 & 0.2 & $10^{-4}$ & 12.895 & 8.911 \\
+\textbf{LSTM} & \textbf{50} & \textbf{0.2} & \textbf{$10^{-4}$} & \textbf{8.359} & \textbf{6.521} \\
+LSTM & 30 & 0.0 & $10^{-4}$ & 12.886 & 9.443 \\
+LSTM & 30 & 0.4 & $10^{-4}$ & 10.082 & 7.168 \\
+LSTM & 30 & 0.2 & 0 & 12.090 & 8.978 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{validation_ablation.png}
+  \caption{Validation-only Phase 2 ablations. The 50-cycle window is selected by capped-RUL validation RMSE.}
+  \label{fig:phase2-ablation}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{final_training_loss.png}
+  \caption{Training loss for the final 32-epoch refit on all 100 training engines. This refit has no validation set; epoch count was selected beforehand.}
+  \label{fig:phase2-training}
+\end{figure}
+
+\subsection{Official test comparison}
+After selection, the LSTM was refitted on all 100 training engines for 32 epochs and evaluated once at the final observed cycle of each of the 100 official test engines. Both models use the same test engines, true-RUL labels, and metric implementations. Table~\ref{tab:phase2-test} shows that the LSTM's validation gain does not generalize: its official-test RMSE is 38\% higher than XGBoost, and its MAE and asymmetric NASA score are also worse. We did not tune or change the model in response to this test result.
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\caption{Official FD001 test set: final-cycle predictions, uncapped true RUL}
+\label{tab:phase2-test}
+\resizebox{\columnwidth}{!}{\begin{tabular}{lccccc}
+\toprule
+Model & Validation RMSE & Test RMSE [95\% CI] & Test MAE & NASA score \\
+\midrule
+Phase 1 XGBoost & 10.794 & \textbf{10.754 [9.1, 12.4]} & \textbf{8.085} & \textbf{161.109} \\
+Phase 2 LSTM & \textbf{8.359} & 14.857 [12.4, 17.4] & 10.559 & 309.965 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+The LSTM RMSE against capped test RUL is 13.412 (MAE 9.489, score 263.105), compared with RMSE 14.857 against uncapped truth. Eleven final test labels exceed 125 cycles. Thus, the target cap explains part, but not all, of the early-life error; capped and uncapped metrics are reported separately and are not interchanged.
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=0.46\textwidth]{model_comparison.png}
+  \hfill
+  \includegraphics[width=0.46\textwidth]{test_predictions.png}
+  \caption{Left: official-test metric comparison. Right: predictions at the last observed cycle for all 100 test engines; the dashed line is ideal prediction.}
+  \label{fig:phase2-test}
+\end{figure*}
+
+\subsection{Final-cycle error by degradation stage}
+Unlike the Phase~1 stage table, which includes all 13,096 observed test cycles, this comparison contains exactly one final-cycle observation per test engine ($n=100$). Table~\ref{tab:phase2-stage} shows that the LSTM is similar to XGBoost in the late stage but substantially worse in the early and middle groups. The early group is also affected by the training target cap.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Official test RMSE by stage, final cycle per engine}
+\label{tab:phase2-stage}
+\begin{tabular}{lccc}
+\toprule
+Stage & $n$ & XGBoost & LSTM \\
+\midrule
+Early ($\text{RUL}>125$) & 11 & 17.594 & 26.306 \\
+Mid ($50<\text{RUL}\le125$) & 56 & 11.498 & 15.690 \\
+Late ($\text{RUL}\le50$) & 33 & 4.789 & 4.521 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{test_stage_errors.png}
+  \caption{Final-cycle test RMSE by degradation stage for XGBoost and LSTM; each engine contributes one observation.}
+  \label{fig:phase2-stage}
+\end{figure}
+
+%=====================================================================
 \section{Discussion: Where Fixed Features Fall Short}
 %=====================================================================
-Using the out-of-fold predictions on training engines, we identified three systematic weaknesses (Fig.~\ref{fig:gap}). First, \textbf{fast-degrading engines}: per-engine error falls as lifetime grows (Spearman $\rho=-0.32$), and engines failing before 160 cycles are predicted late by about 10 cycles on average, against roughly zero bias for the others. The model partly relies on the cycle count as a prior for typical life. Second, the \textbf{onset of degradation}: error peaks for RUL between about 70 and 110, where a 10- or 30-cycle window sees only a short piece of a slow drift. Third, \textbf{short or unusual histories}: test engines observed for fewer than 60 cycles have a higher MAE (10.7 vs.\ 7.7), and the longest-lived training engine, with a drawn-out decline, is among the worst predicted. All three depend on the shape and timing of the whole trajectory, which hand-chosen windows capture poorly. This is the gap the project brief anticipates, and it is the hypothesis that the sequence models of Phase~2 (LSTM~\cite{hochreiter1997lstm} or temporal CNN on windows of 30--50 cycles) will test against the 10.75 baseline under the same protocol.
+Using the out-of-fold predictions on training engines, we identified three systematic weaknesses (Fig.~\ref{fig:gap}). First, \textbf{fast-degrading engines}: per-engine error falls as lifetime grows (Spearman $\rho=-0.32$), and engines failing before 160 cycles are predicted late by about 10 cycles on average, against roughly zero bias for the others. The model partly relies on the cycle count as a prior for typical life. Second, the \textbf{onset of degradation}: error peaks for RUL between about 70 and 110, where a 10- or 30-cycle window sees only a short piece of a slow drift. Third, \textbf{short or unusual histories}: test engines observed for fewer than 60 cycles have a higher MAE (10.7 vs.\ 7.7), and the longest-lived training engine, with a drawn-out decline, is among the worst predicted. These observations motivated Phase~2, but the measured LSTM result does not support a performance improvement: the 50-cycle window was strongest on the validation holdout yet worse on the official test set. This gap is evidence that the single validation split was not sufficiently representative and that a temporal model's capacity does not guarantee better generalization.
 
 \begin{figure*}[t]
   \centering
@@ -302,14 +416,15 @@ Using the out-of-fold predictions on training engines, we identified three syste
   \label{fig:gap}
 \end{figure*}
 
-\textbf{Limitations.} FD001 is simulated, has one operating condition and one fault mode, and its test set has only 100 engines, so the confidence intervals are wide (about $\pm1.7$ cycles). Our tuned cross-validation scores are slightly optimistic because the same folds were used for selection. The test set, used only once, gives the unbiased estimate.
+\textbf{Limitations.} FD001 is simulated, has one operating condition and one fault mode, and its official test set has only 100 engines. Phase~2 uses a single seeded 20-engine validation holdout and a compact LSTM sweep; the selected validation score did not generalize to test. No Temporal CNN or hybrid model was evaluated. The official test set was used for the final comparison only and was not used to revise model selection. Generalization to FD002--FD004 and real engines remains unverified. Phase~1 stage analysis uses all test-cycle rows, whereas Phase~2 stage results use one terminal observation per engine; these populations are not interchangeable.
 
 %=====================================================================
 \section{Conclusion}
 %=====================================================================
-On C-MAPSS FD001, a leakage-free pipeline of degradation features with gradient boosting predicts RUL with a test RMSE of 10.75 cycles, and only 5.7 cycles in the last 50 cycles before failure. The decisive ingredients are a piecewise-linear target and features that describe each engine relative to its own history (baseline deviation, trend slopes and a health index). Hyperparameter tuning matters far less. The remaining errors concentrate on fast degraders, the onset of degradation and short histories, all of which motivate sequence models in Phase~2, which can also extend the regime-aware pipeline to FD002--FD004.
+On C-MAPSS FD001, the leakage-free engineered-feature XGBoost remains the strongest evaluated model, with official-test RMSE 10.754, MAE 8.085, and NASA score 161.109. The Phase~2 LSTM uses a leakage-safe engine split and sequence pipeline, but its official-test RMSE is 14.857, MAE 10.559, and NASA score 309.965. Although it scored better on the single validation holdout, that advantage did not generalize. This negative result is the central finding of the comparison: learned temporal representations did not improve this benchmark under the implemented data and protocol. Future work should use repeated engine-level validation and a new untouched evaluation population before considering model changes or a hybrid.
 
 %=====================================================================
+\clearpage
 \section*{Team Contributions}
 %=====================================================================
 {\small
@@ -328,6 +443,7 @@ Vansh Khod & Data cleaning and validation (data-integrity tests) \\
 \vspace{4pt}
 \noindent Code and notebooks: \url{https://github.com/WhiteHacker000/Remaining-Useful-Life-Prediction-for-Industrial-Engines}
 
+\clearpage
 \bibliographystyle{IEEEtran}
 \bibliography{references}
 
