@@ -1,0 +1,6 @@
+,CV RMSE,± std,folds better than XGBoost
+default (early stopping),9.554520606994629,0.7725811754880639,2.0
+"60 epochs, no early stopping",9.197316932678223,0.3200879088198006,2.0
+early stopping + input noise,9.604125022888184,0.8138038461345217,2.0
+60 epochs + input noise,9.335540771484375,0.2751130753289566,1.0
+"XGBoost, engineered (Phase 1)",9.262395576793148,0.504732028536149,

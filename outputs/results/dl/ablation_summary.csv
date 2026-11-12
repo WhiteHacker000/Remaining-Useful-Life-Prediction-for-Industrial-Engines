@@ -1,0 +1,11 @@
+group,variant,CV RMSE,change vs hybrid,folds worse
+reference,"hybrid (LSTM + features, W = 30)",9.554520606994629,0.0,0
+A. branches,remove sequence branch (features only),10.042043876647949,0.4875232696533203,4
+A. branches,remove feature branch (sequence only),14.011980438232422,4.457459831237793,5
+B. window,W = 50,9.490978240966797,-0.06354236602783203,2
+B. window,W = 80,9.512466621398925,-0.04205398559570313,4
+C. regularisation,no dropout,9.672250938415527,0.11773033142089843,3
+C. regularisation,no weight decay,9.524713134765625,-0.029807472229003908,2
+C. regularisation,no early stopping (60 epochs),9.197316932678223,-0.35720367431640626,3
+C. regularisation,+ input noise (σ = 0.05),9.604125022888184,0.04960441589355469,3
+D. mask,no padding mask,9.737673950195312,0.1831533432006836,3
