@@ -1,0 +1,76 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}
+\graphicspath{{figures/}}
+
+\begin{document}
+
+\title{Remaining Useful Life Prediction for Turbofan Engines:\\
+Sequence Models and a Hybrid Feature-Fusion Network}
+
+\author{
+\IEEEauthorblockN{Kushal Tyagi}
+\IEEEauthorblockA{Enrollment No.\ 2401010249}
+\and
+\IEEEauthorblockN{Nishant Sharma}
+\IEEEauthorblockA{Enrollment No.\ 2401010302}
+\and
+\IEEEauthorblockN{Anant Lalwani}
+\IEEEauthorblockA{Enrollment No.\ 2401020086}
+\and
+\IEEEauthorblockN{Dev Tyagi}
+\IEEEauthorblockA{Enrollment No.\ 2401010148}
+\and
+\IEEEauthorblockN{Vansh Khod}
+\IEEEauthorblockA{Enrollment No.\ 2401010493}
+\and
+\IEEEauthorblockA{\textit{Newton School of Technology, Rishihood University}\\
+Advanced Machine Learning $\cdot$ Project 7, Phase 2 (Deep Learning)}
+}
+
+\maketitle
+
+\begin{abstract}
+We compare models that learn remaining useful life (RUL) directly from sensor sequences with the engineered-feature regression of Phase~1 on NASA's C-MAPSS FD001 benchmark. A leakage-free pipeline turns every cycle into a 30-cycle window of 14 normalised sensors, keeps short histories through padding with a mask channel, and reuses Phase~1's engine-level folds. An LSTM, a temporal convolutional network and a Transformer encoder all learn real degradation patterns (test RMSE 14.7--15.5, against 18.2 for XGBoost on raw single-cycle sensors), but are significantly worse than XGBoost on 88 engineered features (10.75; paired Wilcoxon $p\leq0.0015$). Experiments trace the gap to information outside any fixed window: each engine's distance from its own healthy baseline, and its age. A hybrid network that fuses an LSTM encoder with the engineered features recovers the gap. It beats both of its branches and late fusion in cross-validation, is statistically level with XGBoost on the official benchmark (RMSE 11.02, $p=0.90$), and has the lowest error over all test cycles in every degradation stage. Ablations show that the features are the backbone ($+4.5$ RMSE without them) and that longer windows help sequence-only models but not the hybrid. Retraining with different seeds moves a CV score by about $\pm0.5$--$0.7$, so smaller design effects cannot be distinguished from training noise. Gradient saliency shows that the sequence branch relies on the core-speed sensors that the engineered features use least.
+\end{abstract}
+
+\begin{IEEEkeywords}
+remaining useful life, C-MAPSS, LSTM, temporal convolutional network, Transformer, hybrid model, ablation study
+\end{IEEEkeywords}
+
+\input{sections/kushal_introduction}
+\input{sections/anant_related_work}
+\input{sections/kushal_data_regularisation}
+\input{sections/anant_architectures}
+\input{sections/nishant_hybrid}
+\input{sections/dev_ablations}
+\input{sections/vansh_validation_conclusion}
+
+\section*{Team Contributions}
+{\small
+\begin{tabular}{p{0.25\columnwidth}p{0.6\columnwidth}}
+\toprule
+Member & Phase 2 responsibility \\
+\midrule
+Kushal Tyagi & Sequence data pipeline, leakage checks, training loop and regularisation (notebook 06, \texttt{src/sequences.py}, \texttt{src/training.py}) \\
+Anant Lalwani & Deep learning literature; LSTM, TCN and Transformer architectures and their comparison (notebook 07, \texttt{src/dl\_models.py}) \\
+Nishant Sharma & Hybrid feature-fusion model: rationale, design and evaluation (notebook 08, \texttt{src/hybrid.py}) \\
+Dev Tyagi & Ablation studies and final configuration (notebook 09) \\
+Vansh Khod & Test-set validation: seeds, bootstrap, significance, stages, saliency (notebook 10, \texttt{src/validation.py}) \\
+\bottomrule
+\end{tabular}}
+
+\vspace{4pt}
+\noindent Code and notebooks: \url{https://github.com/WhiteHacker000/Remaining-Useful-Life-Prediction-for-Industrial-Engines}
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}

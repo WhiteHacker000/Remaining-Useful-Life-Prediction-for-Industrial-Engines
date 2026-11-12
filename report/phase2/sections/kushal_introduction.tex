@@ -1,0 +1,14 @@
+% Section owner: Kushal Tyagi -- introduction, sequence data and regularisation
+\section{Introduction}
+Remaining useful life (RUL) prediction estimates how many operating cycles an engine has left before it fails, from its multivariate sensor history~\cite{lei2018review}. Project~7 compares two routes on NASA's C-MAPSS FD001 benchmark~\cite{saxena2008damage,saxena2008dataset}: engineered degradation features with classical regression, and models that learn directly from sensor sequences.
+
+Phase~1 built the first route. A leakage-free pipeline of 88 causal features (rolling statistics, trend slopes, deviation from each engine's own early-life baseline and a PCA health index) with XGBoost~\cite{chen2016xgboost} reached a test RMSE of 10.75 cycles. Its error analysis also identified where fixed-window features fall short: fast-degrading engines, the onset of degradation, and short histories. All three depend on the shape and timing of the full trajectory.
+
+Phase~2 tests the second route and a combination of both. Our contributions are:
+\begin{itemize}
+  \item a sequence-data pipeline that keeps every cycle (including short histories, via padding and a mask channel) and is provably free of cross-engine and future leakage;
+  \item an evaluation of the three architectures named in the brief, LSTM, temporal CNN and Transformer encoder, on the same engine-level folds as Phase~1;
+  \item a hybrid feature-fusion network that combines a sequence encoder with the Phase~1 degradation features, justified by a specific blind spot of window-based models;
+  \item ablation studies of branches, window length, regularisation and the padding mask;
+  \item a validation on the official test set with three seeds, bootstrap confidence intervals, a paired significance test against Phase~1, stage-wise errors and gradient saliency.
+\end{itemize}

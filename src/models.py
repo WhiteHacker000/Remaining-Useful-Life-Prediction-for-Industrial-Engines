@@ -9,7 +9,6 @@ from sklearn.linear_model import ElasticNet
 from sklearn.model_selection import ParameterSampler
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
-from xgboost import XGBRegressor
 
 from .config import N_FOLDS, RUL_CAP, SEED
 from .evaluation import rmse
@@ -50,6 +49,7 @@ def make_model(name, **params):
     if name == "random_forest":
         return RandomForestRegressor(n_jobs=-1, random_state=SEED, **params)
     if name == "xgboost":
+        from xgboost import XGBRegressor   # imported here so PyTorch-only code never loads it (see src/__init__.py)
         return XGBRegressor(tree_method="hist", n_jobs=-1, random_state=SEED, **params)
     raise ValueError(f"unknown model {name}")
 

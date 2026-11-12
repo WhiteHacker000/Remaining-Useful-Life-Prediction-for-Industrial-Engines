@@ -1,0 +1,24 @@
+% Section owner: Kushal Tyagi -- sequence data and regularisation
+\section{Sequence Data and Regularisation}\label{sec:data}
+\subsection{Windows within engine boundaries}
+For engine $i$ at cycle $t$, the model input is the window of the last $W$ cycles,
+\begin{equation}
+  X_{i,t}=\left[z_{i,t-W+1},\dots,z_{i,t}\right]\in\mathbb{R}^{W\times 14},
+\end{equation}
+where $z$ are the 14 informative sensors after the same z-score normalisation as Phase~1, fitted on training engines only. With stride one, every row of the data becomes one window (20{,}631 training windows), so both phases are trained and scored on exactly the same cycles. The target is the Phase~1 piecewise-linear RUL capped at 125~\cite{heimes2008rnn}, divided by 125 so that it lies in $[0,1]$.
+
+\subsection{Short histories: padding and mask}
+Cycles with fewer than $W$ predecessors are kept rather than discarded: the window is left-padded with the engine's own first reading, and a fifteenth channel marks real (1) and padded (0) steps. Without the mask, a padded window would look like a perfectly flat, healthy engine. With $W=30$, 14\% of training cycles and 22\% of test cycles have partly padded windows; at $W=80$ this rises to 38\% and 57\%, and 23 test engines are shorter than the window.
+
+\subsection{Leakage control}
+Three properties are checked in the notebook and in automated tests: (i) every window contains only its own engine's cycles (rebuilding each engine's windows in isolation gives identical arrays); (ii) windows are causal (deleting all future cycles leaves every remaining window unchanged, maximum difference $0$); (iii) normalisation statistics and the engineered features of the hybrid are refitted inside every fold.
+
+\subsection{Splits}
+We reuse Phase~1's five folds over engine ids (20 evaluation engines per fold), so CV scores are directly comparable across phases. Inside each fold, 10\% of the training engines are held out as an inner validation set for early stopping and the learning-rate schedule; the evaluation engines are never used for any training decision. The official test set is used once.
+
+\subsection{Regularisation}
+FD001 has only 100 training engines and consecutive windows overlap in $W-1$ cycles, so networks with tens of thousands of weights overfit quickly: in a demonstration run the inner-validation RMSE was lowest at epoch~10 and rose afterwards while the training error kept falling. We therefore combine dropout ($p=0.2$)~\cite{srivastava2014dropout}; decoupled weight decay ($\lambda=10^{-4}$) with the AdamW optimiser~\cite{kingma2015adam,loshchilov2019adamw}, i.e.\ minimising
+\begin{equation}
+  \mathcal{L}(w)=\frac{1}{n}\sum_{j}\left(\hat y_j(w)-y_j\right)^2+\lambda\lVert w\rVert_2^2;
+\end{equation}
+early stopping with patience 8 and restoration of the best weights~\cite{prechelt1998early}; halving the learning rate on validation plateaus; and gradient-norm clipping at 1.0, which protects recurrent networks from exploding gradients~\cite{pascanu2013difficulty}. Gaussian input noise ($\sigma=0.05$) is evaluated as an augmentation in the ablations.
