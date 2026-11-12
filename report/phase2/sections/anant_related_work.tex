@@ -1,0 +1,9 @@
+% Section owner: Anant Lalwani -- deep learning deep learning literature
+\section{Related Work: Deep Learning for RUL}
+\textbf{Convolutional models.} Babu~\emph{et al.}~\cite{babu2016cnn} first applied a CNN to C-MAPSS sensor windows (FD001 RMSE 18.45). Li~\emph{et al.}~\cite{li2018dcnn} used a deeper 1-D CNN over 30-cycle windows with the piecewise-linear target and reported 12.61. Bai~\emph{et al.}~\cite{bai2018tcn} showed more generally that temporal convolutional networks (TCN) with causal, dilated convolutions, as introduced in WaveNet~\cite{oord2016wavenet}, and residual connections~\cite{he2016resnet} match or beat recurrent networks on many sequence tasks while training in parallel.
+
+\textbf{Recurrent models.} The LSTM~\cite{hochreiter1997lstm} adds a gated, additively updated cell state to the recurrent network, so gradients survive over long sequences. Zheng~\emph{et al.}~\cite{zheng2017lstm} applied stacked LSTMs to C-MAPSS (FD001 RMSE 16.14), and Heimes~\cite{heimes2008rnn} had already used recurrent networks in the PHM'08 challenge.
+
+\textbf{Attention.} The Transformer~\cite{vaswani2017attention} replaces recurrence with self-attention, relating every pair of time steps directly. Mo~\emph{et al.}~\cite{mo2021transformer} combined a Transformer encoder with a gated convolutional unit for RUL estimation on C-MAPSS.
+
+\textbf{Hybrid models.} Al-Dulaimi~\emph{et al.}~\cite{aldulaimi2019hdnn} ran LSTM and CNN branches in parallel and fused them, and Chen~\emph{et al.}~\cite{chen2021attention} combined attention-based LSTM features with handcrafted features. Both support the idea of fusing complementary representations; our hybrid follows the second line, fusing a learned sequence representation with the engineered features of Phase~1. As in Phase~1, published numbers are indicative only, because preprocessing and evaluation protocols differ~\cite{ramasso2014benchmark}.
