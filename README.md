@@ -179,7 +179,7 @@ NASA C-MAPSS Turbofan Engine Degradation Simulation (Saxena & Goebel, 2008), sub
 ## Presentation and viva
 
 - [Phase 2 presentation deck](docs/phase2_presentation.pptx) · [rebuildable slide source](docs/phase2_presentation.md)
-- Build the deck after installing `requirements-presentation.txt`: `python -m scripts.build_phase2_presentation`
+- Install the optional deck builder with `pip install -r requirements-presentation.txt`, then run `python -m scripts.build_phase2_presentation`
 - [Viva question bank with implementation-grounded answers](docs/viva_questions.md)
 
 ---
