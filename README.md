@@ -13,7 +13,23 @@ We predict how many operating cycles a turbofan engine has left before it fails,
 - **Phase 1 (machine learning):** a leakage-free degradation-feature pipeline with Elastic Net, Random Forest and XGBoost.
 - **Phase 2 (deep learning):** LSTM, temporal CNN and Transformer models that learn directly from sensor sequences, and a **hybrid feature-fusion network** that combines sequence learning with the Phase 1 degradation features.
 
-**Reports (IEEE format):** [Phase 1](report/RUL_Prediction_Phase1_Report.pdf) · [Phase 2](report/phase2/RUL_Prediction_Phase2_Report.pdf)
+**Reports (IEEE format):** [Phase 1](report/RUL_Prediction_Phase1_Report.pdf) · [Phase 2](report/phase2/RUL_Prediction_Phase2_Report.pdf) · **Phase 2 slides:** [RUL_Prediction_Phase2.pptx](presentation/RUL_Prediction_Phase2.pptx)
+
+---
+
+## Phase 2 team and roles
+
+There is no project lead. Each member owns one part of Phase 2 end to end: the notebook, the code, the report section and the slides that present it.
+
+| Member | Enrollment No. | Phase 2 responsibility | Notebook | Code | Report section | Slides |
+|---|---|---|---|---|---|---|
+| Kushal Tyagi | 2401010249 | Sequence data pipeline, leakage checks, training loop and regularisation | [06](notebooks/06_sequence_data_and_regularisation.ipynb) | `src/sequences.py`, `src/training.py` | Introduction; Sequence data and regularisation | 1–5 |
+| Anant Lalwani | 2401020086 | Deep-learning literature; LSTM, temporal CNN and Transformer architectures and their comparison | [07](notebooks/07_sequence_models.ipynb) | `src/dl_models.py` | Related work; Sequence architectures | 6–8 |
+| Nishant Sharma | 2401010302 | Hybrid feature-fusion model: rationale, design and evaluation | [08](notebooks/08_hybrid_model.ipynb) | `src/hybrid.py` | Hybrid feature-fusion model | 9, 10, 16 |
+| Dev Tyagi | 2401010148 | Ablation studies, seed variability, final configuration | [09](notebooks/09_ablation_studies.ipynb) | ablation and seed experiments in `outputs/results/dl/` | Ablation studies | 11–12 |
+| Vansh Khod | 2401010493 | Official test-set validation: seeds, bootstrap CIs, significance tests, stage errors, saliency | [10](notebooks/10_dl_test_evaluation.ipynb) | `src/validation.py`, `scripts/xgb_test_predictions.py` | Test-set validation; Discussion; Conclusion | 13–15 |
+
+Report section files are in [`report/phase2/sections/`](report/phase2/sections/), one per member. Phase 1 roles are listed under [Phase 1 team](#phase-1-team).
 
 ---
 
@@ -35,7 +51,7 @@ Official FD001 test set, 100 engines, RMSE in cycles at the last observed cycle 
 - **Sequence models learn real degradation patterns.** On raw sensors they beat single-cycle features by 3 to 3.5 cycles, but on 100 engines they are **significantly worse than engineered features** (paired Wilcoxon, p ≤ 0.002).
 - **Why:** the most informative signals, each engine's distance from its own healthy baseline and its age, lie outside any fixed window. Longer windows help a sequence-only LSTM (14.0 → 11.9 CV RMSE at 50 cycles), which confirms the brief's "long trajectories" hypothesis.
 - **The hybrid closes the gap.** It beats both its branches and a simple average in cross-validation, and is **statistically level with XGBoost** on the official benchmark (p = 0.90). Over all 13,096 test cycles it has the **lowest error in every degradation stage** (8.54 vs 8.81 RMSE).
-- **Ablations:** the engineered features are the backbone (+4.5 RMSE without them). Dropout, input noise and the padding mask help. Early stopping on 7–8 validation engines was too noisy for the hybrid.
+- **Ablations:** the engineered features are the backbone (+4.5 RMSE without them). Retraining the same model with different seeds moves the CV RMSE by about ±0.5–0.7, so smaller effects (dropout, weight decay, input noise, padding mask) cannot be separated from training noise. Over three seeds, a fixed 60 epochs beat early stopping on 7–8 validation engines (9.73 vs 9.99 CV RMSE).
 - **Saliency:** the sequence branch relies on the core-speed sensors (Nc, NRc) that the hand-made features use least, so the two branches are complementary.
 
 <p align="center">
@@ -45,6 +61,25 @@ Official FD001 test set, 100 engines, RMSE in cycles at the last observed cycle 
 <p align="center">
   <img src="outputs/figures/10_error_by_stage.png" width="95%" alt="Test error by degradation stage">
 </p>
+
+---
+
+## How Phase 2 meets the evaluation criteria
+
+| Criterion | Where it is addressed |
+|---|---|
+| Architecture logic | Notebook 07 and report §IV: why an LSTM, a temporal CNN and a Transformer suit degradation data; all three trained and compared under the same protocol |
+| Hybrid innovation | Notebook 08 and report §V: a feature-fusion network justified by what a fixed window cannot see; it beats both its branches and late fusion with all three encoders |
+| Ablation studies | Notebook 09 and report §VI: branches, window length, dropout, weight decay, early stopping, input noise, padding mask, seed variability, final configuration chosen by CV |
+| Deep learning literature review | Report §II: CNN, LSTM, TCN, Transformer and hybrid RUL papers, plus regularisation and optimisation references |
+| DL dataset and regularisation | Notebook 06 and report §III: windows within engine boundaries, padding mask, leakage tests, inner-validation engines, six regularisers |
+| Technical validation | Notebook 10 and report §VII: three seeds, bootstrap CIs, paired Wilcoxon tests, error by degradation stage, weak-spot analysis, gradient saliency |
+| Theoretical rigour | Equations for LSTM gates, TCN receptive field, self-attention, the training loss and the fusion model, in notebooks 07–08 and the report |
+| GitHub repository and code quality | One module per component, 31 automated tests, cached and reproducible results, Colab support, one owner per notebook |
+| Report (LaTeX/IEEE) | [`report/phase2/`](report/phase2/): compiled PDF and LaTeX source with one section file per member |
+| Presentation | [`presentation/RUL_Prediction_Phase2.pptx`](presentation/RUL_Prediction_Phase2.pptx): 16 slides, presenter and speaker notes on every slide |
+
+The project brief's deliverable, a notebook comparing engineered-feature regression with sequence learning on engine-level test results, is notebook 10.
 
 ---
 
@@ -71,6 +106,18 @@ flowchart LR
 
 ## Notebooks
 
+### Phase 2: deep learning
+
+| # | Notebook | What it shows | Owner | Colab |
+|---|---|---|---|---|
+| 06 | [Sequence data & regularisation](notebooks/06_sequence_data_and_regularisation.ipynb) | windows, padding mask, leakage checks, regularisation plan | Kushal | [![Open](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/WhiteHacker000/Remaining-Useful-Life-Prediction-for-Industrial-Engines/blob/main/notebooks/06_sequence_data_and_regularisation.ipynb) |
+| 07 | [Sequence models](notebooks/07_sequence_models.ipynb) | LSTM, TCN, Transformer: theory and CV comparison | Anant | [![Open](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/WhiteHacker000/Remaining-Useful-Life-Prediction-for-Industrial-Engines/blob/main/notebooks/07_sequence_models.ipynb) |
+| 08 | [Hybrid model](notebooks/08_hybrid_model.ipynb) | feature-fusion network vs its parts and late fusion | Nishant | [![Open](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/WhiteHacker000/Remaining-Useful-Life-Prediction-for-Industrial-Engines/blob/main/notebooks/08_hybrid_model.ipynb) |
+| 09 | [Ablation studies](notebooks/09_ablation_studies.ipynb) | branches, window length, regularisation, mask, seed variability | Dev | [![Open](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/WhiteHacker000/Remaining-Useful-Life-Prediction-for-Industrial-Engines/blob/main/notebooks/09_ablation_studies.ipynb) |
+| 10 | [DL test evaluation](notebooks/10_dl_test_evaluation.ipynb) | seeds, bootstrap, significance, stages, saliency | Vansh | [![Open](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/WhiteHacker000/Remaining-Useful-Life-Prediction-for-Industrial-Engines/blob/main/notebooks/10_dl_test_evaluation.ipynb) |
+
+### Phase 1: machine learning
+
 | # | Notebook | What it shows | Owner | Colab |
 |---|---|---|---|---|
 | 01 | [Data loading & quality](notebooks/01_data_loading_and_quality.ipynb) | column dictionary, quality checks, RUL labels | Anant | [![Open](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/WhiteHacker000/Remaining-Useful-Life-Prediction-for-Industrial-Engines/blob/main/notebooks/01_data_loading_and_quality.ipynb) |
@@ -78,11 +125,6 @@ flowchart LR
 | 03 | [Feature engineering](notebooks/03_feature_engineering.ipynb) | 88 causal degradation features, leakage test | Nishant | [![Open](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/WhiteHacker000/Remaining-Useful-Life-Prediction-for-Industrial-Engines/blob/main/notebooks/03_feature_engineering.ipynb) |
 | 04 | [Model training & validation](notebooks/04_model_training_and_validation.ipynb) | target cap, raw vs engineered, ablation, tuning | Kushal | [![Open](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/WhiteHacker000/Remaining-Useful-Life-Prediction-for-Industrial-Engines/blob/main/notebooks/04_model_training_and_validation.ipynb) |
 | 05 | [Test evaluation & error analysis](notebooks/05_test_evaluation_and_error_analysis.ipynb) | official test, stages, SHAP, weak spots | Kushal | [![Open](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/WhiteHacker000/Remaining-Useful-Life-Prediction-for-Industrial-Engines/blob/main/notebooks/05_test_evaluation_and_error_analysis.ipynb) |
-| 06 | [Sequence data & regularisation](notebooks/06_sequence_data_and_regularisation.ipynb) | windows, padding mask, leakage checks, regularisation plan | Kushal | [![Open](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/WhiteHacker000/Remaining-Useful-Life-Prediction-for-Industrial-Engines/blob/main/notebooks/06_sequence_data_and_regularisation.ipynb) |
-| 07 | [Sequence models](notebooks/07_sequence_models.ipynb) | LSTM, TCN, Transformer: theory and CV comparison | Anant | [![Open](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/WhiteHacker000/Remaining-Useful-Life-Prediction-for-Industrial-Engines/blob/main/notebooks/07_sequence_models.ipynb) |
-| 08 | [Hybrid model](notebooks/08_hybrid_model.ipynb) | feature-fusion network vs its parts and late fusion | Nishant | [![Open](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/WhiteHacker000/Remaining-Useful-Life-Prediction-for-Industrial-Engines/blob/main/notebooks/08_hybrid_model.ipynb) |
-| 09 | [Ablation studies](notebooks/09_ablation_studies.ipynb) | branches, window length, regularisation, mask | Dev | [![Open](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/WhiteHacker000/Remaining-Useful-Life-Prediction-for-Industrial-Engines/blob/main/notebooks/09_ablation_studies.ipynb) |
-| 10 | [DL test evaluation](notebooks/10_dl_test_evaluation.ipynb) | seeds, bootstrap, significance, stages, saliency | Vansh | [![Open](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/WhiteHacker000/Remaining-Useful-Life-Prediction-for-Industrial-Engines/blob/main/notebooks/10_dl_test_evaluation.ipynb) |
 
 On Colab, the first cell clones this repository automatically. Notebooks 07–10 load cached results from `outputs/results/dl/` by default. Set `RETRAIN = True` in a notebook to train from scratch (about an hour for all Phase 2 experiments on a laptop).
 
@@ -110,6 +152,7 @@ On Colab, the first cell clones this repository automatically. Notebooks 07–10
 │   ├── results/              Phase 1 tables; results/dl/ Phase 2 experiment results
 │   └── models/               trained Phase 2 network weights
 ├── report/                   Phase 1 report; report/phase2/ Phase 2 report (PDF + LaTeX, one section file per member)
+├── presentation/             Phase 2 slides (PowerPoint)
 ├── scripts/                  data download, Phase 1 XGBoost test predictions
 └── requirements.txt
 ```
@@ -128,7 +171,7 @@ jupyter notebook notebooks/
 ```
 
 - Run the notebooks in order. Notebook 04 takes about 10 minutes; the Phase 2 notebooks run in minutes from the cached results.
-- Tests: `pytest -q`
+- Tests: `pytest -q` (31 tests)
 - macOS note: PyTorch and XGBoost ship different OpenMP runtimes and must not run in the same Python process. The code keeps them apart (see `src/__init__.py`).
 
 ---
@@ -139,15 +182,17 @@ NASA C-MAPSS Turbofan Engine Degradation Simulation (Saxena & Goebel, 2008), sub
 
 ---
 
-## Team
+## Phase 1 team
 
-| Member | Enrollment No. | Phase 1 | Phase 2 |
-|---|---|---|---|
-| Kushal Tyagi | 2401010249 | modelling, validation and tuning · test evaluation | sequence data pipeline · training and regularisation |
-| Nishant Sharma | 2401010302 | exploratory analysis · feature engineering | hybrid feature-fusion model |
-| Anant Lalwani | 2401020086 | literature review and report · data quality checks | DL literature · LSTM, TCN and Transformer |
-| Dev Tyagi | 2401010148 | data set sourcing and documentation | ablation studies |
-| Vansh Khod | 2401010493 | data validation tests | test-set validation · significance · saliency |
+Phase 2 roles are listed at the top, under [Phase 2 team and roles](#phase-2-team-and-roles).
+
+| Member | Enrollment No. | Phase 1 responsibility |
+|---|---|---|
+| Kushal Tyagi | 2401010249 | modelling, validation and tuning · test evaluation (notebooks 04–05) |
+| Nishant Sharma | 2401010302 | exploratory analysis · feature engineering (notebooks 02–03) |
+| Anant Lalwani | 2401020086 | literature review and report · data quality checks (notebook 01) |
+| Dev Tyagi | 2401010148 | data set sourcing and documentation (`data/`) |
+| Vansh Khod | 2401010493 | data validation tests (`tests/test_data.py`) |
 
 ---
 
