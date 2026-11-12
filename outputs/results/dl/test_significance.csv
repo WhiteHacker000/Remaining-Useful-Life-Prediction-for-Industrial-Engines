@@ -1,0 +1,5 @@
+model vs XGBoost,mean |error| model,mean |error| XGBoost,engines where model is better,statistic,p-value
+LSTM (sensor sequence),11.625985112,8.085268701,33.0,1466.0,0.0002713849663803473
+TCN (sensor sequence),11.21305844,8.085268701,38.0,1599.0,0.001453108200714456
+Transformer (sensor sequence),11.174871960000003,8.085268701,40.0,1530.0,0.0006236077727091549
+Hybrid (LSTM + features),8.019075497,8.085268701,51.0,2488.0,0.8987678439874949
