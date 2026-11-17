@@ -24,10 +24,10 @@ There is no project lead. Each member owns one part of Phase 2 end to end: the n
 | Member | Enrollment No. | Phase 2 responsibility | Notebook | Code | Report section | Slides |
 |---|---|---|---|---|---|---|
 | Kushal Tyagi | 2401010249 | Sequence data pipeline, leakage checks, training loop and regularisation | [06](notebooks/06_sequence_data_and_regularisation.ipynb) | `src/sequences.py`, `src/training.py` | Introduction; Sequence data and regularisation | 1–5 |
-| Anant Lalwani | 2401020086 | Deep-learning literature; LSTM, temporal CNN and Transformer architectures and their comparison | [07](notebooks/07_sequence_models.ipynb) | `src/dl_models.py` | Related work; Sequence architectures | 6–8 |
+| Anant Lalwani | 2401020086 | Deep-learning literature; LSTM, temporal CNN and Transformer architectures and their comparison | [07](notebooks/07_sequence_models.ipynb) | `src/dl_models.py`, `tests/test_dl_models.py` | Related work; Sequence architectures | 6–8 |
 | Nishant Sharma | 2401010302 | Hybrid feature-fusion model: rationale, design and evaluation | [08](notebooks/08_hybrid_model.ipynb) | `src/hybrid.py` | Hybrid feature-fusion model | 9, 10, 16 |
-| Dev Tyagi | 2401010148 | Ablation studies, seed variability, final configuration | [09](notebooks/09_ablation_studies.ipynb) | ablation and seed experiments in `outputs/results/dl/` | Ablation studies | 11–12 |
-| Vansh Khod | 2401010493 | Official test-set validation: seeds, bootstrap CIs, significance tests, stage errors, saliency | [10](notebooks/10_dl_test_evaluation.ipynb) | `src/validation.py`, `scripts/xgb_test_predictions.py` | Test-set validation; Discussion; Conclusion | 13–15 |
+| Dev Tyagi | 2401010148 | Ablation studies, seed variability, final configuration | [09](notebooks/09_ablation_studies.ipynb) | ablation and seed experiments in `outputs/results/dl/` (documented in its [README](outputs/results/dl/README.md)) | Ablation studies | 11–12 |
+| Vansh Khod | 2401010493 | Official test-set validation: seeds, bootstrap CIs, significance tests, stage errors, saliency | [10](notebooks/10_dl_test_evaluation.ipynb) | `src/validation.py`, `scripts/xgb_test_predictions.py`, `tests/test_validation.py` | Test-set validation; Discussion; Conclusion | 13–15 |
 
 Report section files are in [`report/phase2/sections/`](report/phase2/sections/), one per member. Phase 1 roles are listed under [Phase 1 team](#phase-1-team).
 
@@ -75,7 +75,7 @@ Official FD001 test set, 100 engines, RMSE in cycles at the last observed cycle 
 | DL dataset and regularisation | Notebook 06 and report §III: windows within engine boundaries, padding mask, leakage tests, inner-validation engines, six regularisers |
 | Technical validation | Notebook 10 and report §VII: three seeds, bootstrap CIs, paired Wilcoxon tests, error by degradation stage, weak-spot analysis, gradient saliency |
 | Theoretical rigour | Equations for LSTM gates, TCN receptive field, self-attention, the training loss and the fusion model, in notebooks 07–08 and the report |
-| GitHub repository and code quality | One module per component, 31 automated tests, cached and reproducible results, Colab support, one owner per notebook |
+| GitHub repository and code quality | One module per component, 39 automated tests, cached and reproducible results, Colab support, one owner per notebook |
 | Report (LaTeX/IEEE) | [`report/phase2/`](report/phase2/): compiled PDF and LaTeX source with one section file per member |
 | Presentation | [`presentation/RUL_Prediction_Phase2.pptx`](presentation/RUL_Prediction_Phase2.pptx): 16 slides, presenter and speaker notes on every slide |
 
