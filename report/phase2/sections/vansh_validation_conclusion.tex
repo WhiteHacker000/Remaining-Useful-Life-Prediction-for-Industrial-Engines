@@ -39,7 +39,7 @@ Scoring every test cycle (13{,}096 points) against the capped target, the hybrid
 \end{figure}
 
 \subsection{What the sequence branch looks at}
-Gradient saliency~\cite{simonyan2014saliency}, the mean $|\partial\hat y/\partial x_{s,\tau}|$ over test windows with RUL $\leq80$ (Fig.~\ref{fig:saliency}), shows that the network concentrates on the last ten or so cycles and on the core speeds $s_9$ (Nc) and $s_{14}$ (NRc), the HPC outlet pressure $s_7$ and the temperature $s_4$. The core speeds were the weakest sensors in Phase~1's ranking and carried little weight in the PCA health index. The sequence branch therefore exploits exactly the signal that the hand-made features use least, which is direct evidence of the complementarity behind the hybrid.
+Gradient saliency~\cite{simonyan2014saliency}, the mean $|\partial\hat y/\partial x_{s,\tau}|$ over test windows with RUL $\leq80$ (Fig.~\ref{fig:saliency}), shows that the network concentrates on the last ten or so cycles. The sensor it reacts to most, by a clear margin, is the physical core speed $s_9$ (Nc), followed by the corrected fan speed $s_{13}$ (NRf), the HPC outlet pressure $s_7$ (P30) and the LPT outlet temperature $s_4$ (T50). The core speed was among the weakest sensors in Phase~1's prognostic ranking and had the smallest weight in the PCA health index, because engines end at very different values. The sequence branch therefore leans most on a signal that the hand-made features use least, which supports the complementarity behind the hybrid.
 
 \begin{figure}[t]
   \centering
@@ -49,7 +49,7 @@ Gradient saliency~\cite{simonyan2014saliency}, the mean $|\partial\hat y/\partia
 \end{figure}
 
 \section{Discussion and Limitations}
-The central comparison of the project has a clear answer on FD001: models that learn only from sensor sequences learn real degradation patterns (3--3.5 cycles better than raw single-cycle features) but do not reach carefully engineered degradation features. The reason is identified by the experiments: the most informative quantities, each engine's distance from its own healthy baseline and its age, lie outside any fixed window, and 100 engines are too few to learn such references. Longer windows help a sequence-only model (14.0 to 11.9 at $W=50$), which supports the brief's hypothesis that fixed windows miss long trajectories. Supplying the context through engineered features helps more.
+The central comparison of the project has a clear answer on FD001: models that learn only from sensor sequences learn real degradation patterns (2.7--3.5 cycles better than raw single-cycle features on the test set) but do not reach carefully engineered degradation features. The reason is identified by the experiments: the most informative quantities, each engine's distance from its own healthy baseline and its age, lie outside any fixed window, and 100 engines are too few to learn such references. Longer windows help a sequence-only model (14.0 to 11.9 at $W=50$), which supports the brief's hypothesis that fixed windows miss long trajectories. Supplying the context through engineered features helps more.
 
 The hybrid recovers the whole gap, beats both its parts and late fusion in cross-validation, and matches the best feature-based model on the official benchmark, with a small but consistent advantage over all test cycles and near failure. We do not claim a significant improvement over XGBoost: the paired test shows none.
 

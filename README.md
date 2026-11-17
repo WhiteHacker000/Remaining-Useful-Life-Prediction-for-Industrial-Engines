@@ -48,11 +48,11 @@ Official FD001 test set, 100 engines, RMSE in cycles at the last observed cycle 
 
 **What we found**
 
-- **Sequence models learn real degradation patterns.** On raw sensors they beat single-cycle features by 3 to 3.5 cycles, but on 100 engines they are **significantly worse than engineered features** (paired Wilcoxon, p ≤ 0.002).
+- **Sequence models learn real degradation patterns.** On raw sensors they beat single-cycle features by 2.7 to 3.5 cycles on the test set, but on 100 engines they are **significantly worse than engineered features** (paired Wilcoxon, p ≤ 0.002).
 - **Why:** the most informative signals, each engine's distance from its own healthy baseline and its age, lie outside any fixed window. Longer windows help a sequence-only LSTM (14.0 → 11.9 CV RMSE at 50 cycles), which confirms the brief's "long trajectories" hypothesis.
 - **The hybrid closes the gap.** It beats both its branches and a simple average in cross-validation, and is **statistically level with XGBoost** on the official benchmark (p = 0.90). Over all 13,096 test cycles it has the **lowest error in every degradation stage** (8.54 vs 8.81 RMSE).
 - **Ablations:** the engineered features are the backbone (+4.5 RMSE without them). Retraining the same model with different seeds moves the CV RMSE by about ±0.5–0.7, so smaller effects (dropout, weight decay, input noise, padding mask) cannot be separated from training noise. Over three seeds, a fixed 60 epochs beat early stopping on 7–8 validation engines (9.73 vs 9.99 CV RMSE).
-- **Saliency:** the sequence branch relies on the core-speed sensors (Nc, NRc) that the hand-made features use least, so the two branches are complementary.
+- **Saliency:** the sequence branch relies most on the core speed `s_9` (Nc), followed by fan speed NRf, P30 and T50. Nc is a sensor the hand-made features use least, so the two branches are complementary.
 
 <p align="center">
   <img src="outputs/figures/08_hybrid_comparison.png" width="90%" alt="Hybrid versus its parts">
