@@ -146,7 +146,7 @@ On Colab, the first cell clones this repository automatically. Notebooks 07–10
 │   ├── hybrid.py             Phase 2: hybrid feature-fusion network
 │   ├── validation.py         Phase 2: paired Wilcoxon test, gradient saliency
 │   └── plotting.py           shared figure style
-├── tests/                    labels, feature causality, data integrity, windows, models (pytest)
+├── tests/                    labels, feature causality, data integrity, windows, models, validation (pytest)
 ├── outputs/
 │   ├── figures/              all figures used in notebooks, reports and slides
 │   ├── results/              Phase 1 tables; results/dl/ Phase 2 experiment results
@@ -171,7 +171,7 @@ jupyter notebook notebooks/
 ```
 
 - Run the notebooks in order. Notebook 04 takes about 10 minutes; the Phase 2 notebooks run in minutes from the cached results.
-- Tests: `pytest -q` (31 tests)
+- Tests: `pytest -q` (39 tests)
 - macOS note: PyTorch and XGBoost ship different OpenMP runtimes and must not run in the same Python process. The code keeps them apart (see `src/__init__.py`).
 
 ---
